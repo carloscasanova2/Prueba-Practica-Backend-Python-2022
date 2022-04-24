@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <title>interfaz</title>
+
+</head>
+
+<body style="background-color: rgb(250, 253, 255);">
+    <div class="container">
+        <div class="row">
+            <div class="row" style="background-color:burlywood;">
+                Crear Orden
+            </div>
+                <p> </p>
+            <div class="row">
+                <div class="col-10 formulario">
+                    <div class="mb-2">
+                        <label  class="form-label">Dirección</label>
+                        <input id="address" class="form-control" type="text" placeholder="Dirección">
+                    </div>
+                    <div class="mb-2">
+                        <label  class="form-label">Customer</label>
+                        <input id="id_customer" class="form-control" type="number" placeholder="Customer">
+                    </div>
+                    <!-- <input id="date" type="date" placeholder="dd-mm-yyyy" value="" min="01-01-1997" max="31-12-2030"><br><br> -->                    
+                    <button type="button" class="btn btn-primary" onclick="add_product()">
+                        Agregar Productos
+                    </button><br><br>
+
+                    <div id="products">
+                    </div><br>
+
+                    <button type="button" class="btn btn-success" onclick="create_order()">
+                        Crear Orden
+                    </button><br><br>
+                    <p id="responseno"></p>
+                </div>
+                <div></div>
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="row" style="background-color:burlywood;">
+                Consultar Ordenes
+            </div>
+            <p> </p>
+            <div class="row">
+                <div class="col-10 formulario">
+                    <label  class="form-label">Rango de Fechas</label>
+                    <div class="input-group mb-3">
+                        
+                        <input id="date1" type="date" class="form-control" placeholder="dd-mm-yyyy" >
+                        <span class="input-group-text" id="basic-addon1">a</span>
+                        <input id="date2" type="date" class="form-control" placeholder="dd-mm-yyyy" >
+                    </div>
+                    <div class="mb-2">
+                        <label  class="form-label">Customer</label>
+                        <input id="id_customerl" class="form-control" type="number" placeholder="Customer">
+                    </div>
+
+                    <div id="orders">
+                    </div><br>
+
+                    <button type="button" class="btn btn-success" onclick="get_orders()">
+                        Consultar
+                    </button><br><br>
+                    <p id="responsenl"></p>
+
+
+
+                </div>
+                <div></div>
+            </div>
+        </div>
+    </div>
+</body>
+<script language="javascript">
+    function add_product() {
+        console.log("onclik");
+        var products = document.getElementById("products");
+        console.log(products);
+        var len_product = document.getElementById("products").childNodes.length ? document.getElementById("products").childNodes.length : 0;
+        if (len_product < 14) {
+            console.log(len_product);
+            var inputtext = document.createElement("input");
+            inputtext.type = "number";
+            inputtext.id = "productn";
+            inputtext.className = "form-control";
+            inputtext.placeholder = "id producto";
+
+            var inputNumber = document.createElement("input");
+            inputNumber.type = "number";
+            inputNumber.id = "productq";
+            inputNumber.className = "form-control";
+            inputNumber.placeholder = "cantidad"
+
+            products.appendChild(inputtext);
+            products.appendChild(inputNumber);
+            products.appendChild(document.createElement("br"));
+        }
+
+    }
+    
+    function create_order() {
+        var dt = new Date(Date.now());
+        var date = dt.toLocaleDateString().toString().replaceAll("/", "-");
+        var add = document.getElementById("address").value;
+        var id_c = document.getElementById("id_customer").value;
+        var prodid = document.querySelectorAll("input#productn");
+        var prodq = document.querySelectorAll("input#productq");
+        var prods = []
+        for (var i = 0; i < prodid.length; i++) {
+            prods.push({ "id": parseInt(prodid[i].value), "quantity": parseInt(prodq[i].value) })
+        }
+
+        var req = {
+            "date": date,
+            "address": add,
+            "id_customer": id_c,
+            "products": prods
+        }
+
+        console.log(req);
+        httpPost('create_order', req);
+
+
+    }
+    
+    function get_orders(){
+        let date1 = document.getElementById("date1").value?document.getElementById("date1").value.split('-').reverse().join('-'):"";
+        let date2 = document.getElementById("date2").value?document.getElementById("date2").value.split('-').reverse().join('-'):"";
+        let id_customer = document.getElementById("id_customerl").value?document.getElementById("id_customerl").value:"";
+        let req = {
+            "date1":date1,
+            "date2":date2,
+            "id_customer":parseInt(id_customer)
+        };
+        httpPost('get_order_by_date', req);
+    }
+
+    function httpPost(service, data) {
+        var http = new XMLHttpRequest();
+        var url = 'http://127.0.0.1:5000/' + service;
+        http.open('POST', url, true);
+
+        //Send the proper header information along with the request
+        http.setRequestHeader('Content-type', 'application/json');
+        // http.setRequestHeader('Access-Control-Allow-Origin','*');
+
+        http.onreadystatechange = function () {//Call a function when the state changes.
+            console.log(http.status);
+            if (http.readyState == 4 && http.status == 200) {
+                console.log(http.response);
+                res = JSON.parse(http.responseText);
+                if(service == "create_order"){
+                    document.getElementById("responseno").innerText = res["Mensaje"] + "\nNúmero de Orden: " + res["id"];
+                }else 
+                {
+                    if(service == "get_order_by_date"){
+                        create_table(res["orders"]);
+                        document.getElementById("responsenl").innerText = res["Mensaje"];
+                    }
+                }
+                
+            }
+        }
+        http.send(JSON.stringify(data));
+
+    }
+
+    function create_table(orders){
+        var orderselement = document.getElementById("orders");
+        var table = document.createElement("table");
+        table.className = "table table-bordered";
+        table.id = "order_report";
+        
+        orders.reverse().forEach(order => {
+            var row = table.insertRow(0);
+            var id_order_cell = row.insertCell(0);
+            var id_date_cell = row.insertCell(1);
+            var id_address_cell = row.insertCell(2);
+            var id_total_cell = row.insertCell(3);
+            var id_descript_cell = row.insertCell(4);
+            var description = "";
+            order["products"].forEach(product => {
+                description += product["quantity"] + " X "+ product["product"]+";\n";
+            });
+            id_order_cell.innerHTML = order["id_order"];
+            id_date_cell.innerHTML = order["date"];
+            id_address_cell.innerHTML = order["address"];
+            id_total_cell.innerHTML = order["total"];
+            id_descript_cell.innerHTML = description;
+        });
+        var header = table.createTHead();
+        var row = header.insertRow(0); 
+        var id_order_head= row.insertCell(0);
+        var id_date_head= row.insertCell(1);
+        var id_address_head= row.insertCell(2);
+        var id_total_head= row.insertCell(3);
+        var id_descript_head= row.insertCell(4);
+        id_order_head.innerHTML = "Número Orden";
+        id_date_head.innerHTML = "Fecha Creación";
+        id_address_head.innerHTML = "Dirección";
+        id_total_head.innerHTML = "Total";
+        id_descript_head.innerHTML = "Descipción";
+
+        orderselement.appendChild(table);
+
+
+    }
+
+</script>
+
+</html>

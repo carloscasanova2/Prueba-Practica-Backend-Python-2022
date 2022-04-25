@@ -105,7 +105,7 @@ def validate_products(id_customer, selected_products_list_id):
     print("esto es select_list", selected_products_list_id)
     #vamos a recorrer toda la lista de productos seleccionados, si no se encuentra el producto porque nos da cero, nos dará un False. 
     for sp in selected_products_list_id: 
-        if available_products.count(sp)==0: #count va contará cuantas veces esta el id de productos disponibles en la lista
+        if available_products.count(sp)==0: #count contará cuantas veces esta el id de productos disponibles en la lista
             return False
     con.commit()
     con.close()
@@ -150,17 +150,6 @@ def get_order_by_date():
     #consultar tabla de modif_order y filtrar por fechas - nos traemos todas las ordenes
     con = sqlite3.connect(database_name)
     cur= con.cursor()
-
-
-    #organizamos las ordenes y los datos que se solicitan
-    #SELECT -> el * permite traer todas las columnas, para traer las columnas que se requieren se debe escribir el nombre de esas columnas y especificar la tabla de donde provienen
-    #FROM -> indica de que tabla importaremos los datos, el AS modifica el nombre con el que se importa la tabla. 
-    #INNER JOIN -> tomamos la tabla que importamos con el FROM y la unimos con la siguiente tabla(tomamos dos tablas y las unimos, mo y mod) el ON clasifica por la columna en comun de las dos tablas
-    #el INNER JOIN requiere que se especifique dentro del ON la o las columnas que relacionan las dos tablas importadas, en este caso: mo.o_order_id
-    #INNER JOIN -> acá se importa la tabla modif_product y se relaciona con la columna mp.p_product_id
-    # WHERE es condicional por lo tanto clasifica las filas que coincidan con las siguients condiciones: en ese caso la primera es fechas y la segunda el id del customer 
-    #BETWEEN filtra una columna dentro de un rango establecido, en este caso la columna mo.o_date y el rango que se visualiza, con AND concateno condiciones dentro del WHERE
-    
     
     try:  
         date2 = data['date2'] if data['date2'] else datetime.strftime(datetime.now(), "%d-%m-%Y")
